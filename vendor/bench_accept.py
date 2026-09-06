@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2026 specdraft contributors
 
-"""简易 accept bench：发 N 条 prompt 到 sglang 服务，从 /metrics 读 spec_accept_length/rate。
+"""Simple accept benchmark: send N prompts to an sglang server, read spec_accept_length/rate from /metrics.
 
-用法: python bench_accept.py --port 8010 --prompts eval.json [--max-tokens 128] [--tag dflash1]
-输出: accept_length / accept_rate / 平均输出 token / tok/s
+Usage: python bench_accept.py --port 8010 --prompts eval.json [--max-tokens 128] [--tag dflash1]
+Output: accept_length / accept_rate / avg output tokens / tok/s
 """
 import argparse
 import json
@@ -24,7 +24,7 @@ def main():
     prompts = json.load(open(args.prompts))
     base = f"http://127.0.0.1:{args.port}"
 
-    # 先读一次 metrics 基线
+    # read the metrics baseline once
     def metrics():
         with urllib.request.urlopen(f"{base}/metrics", timeout=10) as r:
             return r.read().decode()
@@ -57,7 +57,7 @@ def main():
             if line.startswith(name):
                 return line.split()[-1]
         return None
-    # accept 指标是累计 gauge/rate
+    # accept metrics are cumulative gauge/rate
     out = {
         "tag": args.tag,
         "prompts": len(prompts),

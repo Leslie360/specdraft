@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2026 specdraft contributors
 
-"""04 转换：speculators train.py 产物 → sglang 可 serve 草稿。
+"""Convert speculators train.py outputs to sglang-servable drafts.
 
-通用版：
+Generic:
   - DFLASH : architectures=["DFlashDraftModel"]
-  - DSPARK : architectures=["DSparkDraftModel"]（含 markov/confidence 头）
-  - 统一丢 embed_tokens.weight / lm_head.weight（运行时与 target 共享）
+  - DSPARK : architectures=["DSparkDraftModel"] (with markov/confidence heads)
+  - drops embed_tokens.weight / lm_head.weight uniformly (shared with the target at runtime)
 
-用法:
+Usage:
   python 04_convert_servable.py <ckpt_dir> <out_dir> [--arch dspark] [--num-target-layers 48]
 """
 import argparse
@@ -23,7 +23,7 @@ DROP_KEYS = {"embed_tokens.weight", "lm_head.weight"}
 ARCH_MAP = {
     "dflash": "DFlashDraftModel",
     "dspark": "DSparkDraftModel",
-    "dflash2": "DFlash2DraftModel",  # ★ 2026-08-25 移植 PR#1006 后支持
+    "dflash2": "DFlash2DraftModel",  # port of PR#1006 (2026-08-25); supported
 }
 
 
@@ -32,7 +32,7 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
     cfg = {
         "architectures": [ARCH_MAP[arch]],
         "model_type": tlc.get("model_type", "qwen3"),
-        # auto_map 移除：sglang 按 architectures 注册模型（auto_map 会引 sglang_venv 找不到的模块）
+        # drop auto_map: sglang registers by architectures (auto_map pulls in modules missing from sglang_venv)
         "dtype": "bfloat16",
         "transformers_version": src_cfg.get("transformers_version", "5.13.0"),
         # flat HF transformer fields
@@ -59,13 +59,13 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
         "use_cache": tlc.get("use_cache", True),
         "use_sliding_window": tlc.get("use_sliding_window", True),
         "vocab_size": src_cfg.get("draft_vocab_size", tlc.get("vocab_size")),
-        # speculator 字段
+        # speculator fields
         "block_size": src_cfg.get("block_size"),
         "mask_token_id": src_cfg.get("mask_token_id"),
         "target_layer_ids": src_cfg.get("aux_hidden_state_layer_ids"),
         "num_target_layers": num_target_layers,
     }
-    # DSpark 专属头字段
+    # DSpark-only head fields
     if arch == "dspark":
         cfg.update({
             "markov_rank": src_cfg.get("markov_rank"),
@@ -74,7 +74,7 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
             "confidence_head_with_markov": src_cfg.get("confidence_head_with_markov", False),
             "sample_from_anchor": src_cfg.get("sample_from_anchor"),
         })
-    # DFlash2 专属：嵌套 dflash_config（sglang DFlash2DraftModel 读取，selector_rank truthy 才走 DFlash2 路径）
+    # DFlash2-only: nested dflash_config (read by sglang DFlash2DraftModel; active when selector_rank is truthy)
     if arch == "dflash2":
         cfg["dflash_config"] = {
             "block_size": src_cfg.get("block_size"),
@@ -92,7 +92,7 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("ckpt", type=Path, help="speculators train.py save dir (config.json+model.safetensors)")
-    ap.add_argument("out", type=Path, help="servable draft 输出目录")
+    ap.add_argument("out", type=Path, help="output directory for the servable draft")
     ap.add_argument("--arch", choices=list(ARCH_MAP), default="dspark")
     ap.add_argument("--num-target-layers", type=int, default=48, help="target num_hidden_layers")
     args = ap.parse_args()

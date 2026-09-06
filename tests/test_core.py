@@ -1,4 +1,4 @@
-"""核心模块单测：presets / config / invoke（dry-run 校验全链路命令）。"""
+"""Core module unit tests: presets / config / invoke (dry-run verifies full-pipeline argv)."""
 import sys
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parent.parent))
@@ -19,7 +19,7 @@ def test_presets():
     assert p.target_layer_ids == (5, 19, 33, 47, 61)
     assert p.block_size == 8 and p.decay_gamma == 4
     assert p.mamba_hybrid
-    # ★ 2026-09-06 Flash-Next 旗舰 preset 收编（生产目标，seq_len 65536）
+    # Flash-Next flagship preset adoption (production target, seq_len 65536)
     pn = get_preset("qwen38-flash-next")
     assert pn.num_layers == 48 and pn.hidden_size == 2560 and pn.vocab_size == 248320
     assert pn.target_layer_ids == (1, 7, 14, 20, 26, 32, 39, 45)
@@ -47,12 +47,12 @@ def test_train_cmd_dflash():
     cfg.data_hs = "/tmp/hs"
     cmd = cmd_train(cfg, Env())
     s = " ".join(cmd)
-    # PP1: dflash 损失 + γ
+    # PP1: dflash loss + gamma
     assert "--speculator-type dflash" in s
     assert "--per-position-loss-weight dpace" in s
     assert "--dflash-decay-gamma 4" in s
     assert "--on-missing raise" in s
-    # 禁 custom_all_reduce（在 hsextract/serve 命令里，train 不涉及）
+    # custom_all_reduce disabled (hsextract/serve commands; not in train)
 
 
 def test_train_cmd_dspark():
@@ -91,7 +91,7 @@ def test_prepare_no_render():
     cfg.data_pretok_jsonl = "/tmp/pretok.jsonl"
     cfg.data_prep = "/tmp/prep"
     s = " ".join(cmd_prepare(cfg, Env()))
-    # PP2: 不传 --render-endpoint
+    # PP2: no --render-endpoint
     assert "--render-endpoint" not in s
 
 
@@ -99,5 +99,5 @@ def test_validate_block_gamma():
     from specdraft.validate import validate_config
     cfg = load_config("presets/qwen38-27b.yaml", None, [])
     assert validate_config(cfg) == []
-    cfg.decay_gamma = 7  # block8 却配 γ7 → 报错
+    cfg.decay_gamma = 7  # block8 with gamma 7 → should fail
     assert any("decay_gamma" in p for p in validate_config(cfg))

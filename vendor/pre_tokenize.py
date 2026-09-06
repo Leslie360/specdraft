@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2026 specdraft contributors
 
-"""离线预 tokenize：把 on-policy regen jsonl（自然语言）转成 speculator-format 行。
+"""Offline pretokenization: turn on-policy regen jsonl (natural language) into speculator-format rows.
 
-框架的 prepare_data 对含 input_ids+loss_mask 的行自动跳过 render（见
-preprocessing.py: pretokenized = {"input_ids","loss_mask"} <= cols）。
-loss_mask: 0 = prompt（system+user），1 = 目标生成的 assistant 响应（可训）。
+The framework's prepare_data skips render for rows that already carry input_ids+loss_mask (see
+preprocessing.py: pretokenized = {"input_ids","loss_mask"} <= cols).
+loss_mask: 0 = prompt (system+user), 1 = the target-generated assistant response (trainable).
 
-用法:
+Usage:
   python pre_tokenize.py --model <target> --input regen.jsonl --output pretok.jsonl [--max N]
 """
 import argparse
@@ -30,10 +30,10 @@ def main():
     print(f"tokenizer: {type(tok).__name__}, vocab={tok.vocab_size}")
 
     def _to_ids(x):
-        """apply_chat_template(tokenize=True) 可能返回 BatchEncoding/{input_ids..}/int列表/Encoding/张量，统一成 int 列表。
-        注意 transformers BatchEncoding 重写了 isinstance 检查（isinstance(x, dict) 为 False），
-        必须用 hasattr/get 检测。"""
-        # BatchEncoding（dict 子类但 isinstance dict=False）
+        """apply_chat_template(tokenize=True) may return BatchEncoding/{input_ids..}/list-of-int/Encoding/tensor —
+        normalize to a list of ints. Note transformers BatchEncoding overrides the isinstance check
+        (isinstance(x, dict) is False), so detection must use hasattr/get."""
+        # BatchEncoding (dict subclass but isinstance dict=False)
         if hasattr(x, "get") and "input_ids" in x:
             x = x["input_ids"]
         if hasattr(x, "ids"):
@@ -44,7 +44,7 @@ def main():
             return [t for e in x for t in e.ids]
         if isinstance(x, list) and x and isinstance(x[0], int):
             return x
-        raise TypeError(f"无法从 {type(x)} 提取 token ids: {str(x)[:80]}")
+        raise TypeError(f"cannot extract token ids from {type(x)}: {str(x)[:80]}")
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     n_written = n_skip = 0
@@ -57,14 +57,14 @@ def main():
             if not conv:
                 n_skip += 1
                 continue
-            # 只留 system/user/assistant（丢弃 tool_call 等，open-perfectblend 无）
+            # keep only system/user/assistant (drop tool_call etc.)
             msgs = [m for m in conv if m.get("role") in ("system", "user", "assistant")]
             if not any(m["role"] == "assistant" for m in msgs):
                 n_skip += 1
                 continue
             try:
-                # 27B 模板不支持 assistant_tokens_mask；assistant 轮以 <|im_start|> 开头（我们的数据
-                # 是单个 assistant 轮在末尾）。mask = 最后一个 <|im_start|> 之后全 1（目标生成区）。
+                # 27B template has no assistant_tokens_mask; the assistant turn starts at <|im_start|>
+                # (our data has a single assistant turn at the end). mask = all-ones after the last <|im_start|>.
                 enc = tok.apply_chat_template(
                     msgs, tokenize=True, add_generation_prompt=False
                 )
@@ -73,7 +73,7 @@ def main():
                 starts = [i for i, t in enumerate(full_ids) if t == im_start]
                 if not starts:
                     raise ValueError("no <|im_start|> found")
-                last = starts[-1]  # 最后一个 = assistant 轮起始
+                last = starts[-1]  # the last one = assistant turn start
                 loss_mask = [0] * last + [1] * (len(full_ids) - last)
             except Exception as e:  # noqa: BLE001
                 n_skip += 1

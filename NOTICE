@@ -7,7 +7,7 @@ This project is licensed under the Apache License, Version 2.0 (see LICENSE).
 
 The training engine this package orchestrates, vllm-project/speculators
 (Apache-2.0), is NOT vendored here; it is referenced at run time via the
-QDT_SPECULATORS_REPO environment variable. The scripts under `vendor/` are
+SPECDRAFT_SPECULATORS_REPO environment variable. The scripts under `vendor/` are
 original pipeline helpers written for this project (data preparation,
 hidden-state extraction, checkpoint conversion, accept benchmarking) and are
 likewise Apache-2.0.

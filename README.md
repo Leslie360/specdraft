@@ -69,6 +69,7 @@ Requirements: Python ≥ 3.10. Training needs a venv with `torch`, `vllm`, `tran
 ```bash
 # 1) clone the engine repo (its scripts/ are invoked by this pipeline)
 git clone https://github.com/vllm-project/speculators.git
+#   (validated against vllm-project/speculators @ 4048017)
 
 # 2) install this package
 pip install -e .
