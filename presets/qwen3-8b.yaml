@@ -1,0 +1,14 @@
+# Qwen3-8B 预设（冒烟/单卡验证用，框架自检）
+preset_name: qwen3-8b
+model_path: Qwen/Qwen3-8B
+num_layers: 5
+block_size: 8
+decay_gamma: 4
+target_layer_ids: [2, 18, 33]
+num_target_layers: 36
+draft_vocab_size: 151936
+seq_len: 4096
+max_anchors: 512
+lr: 3.0e-4
+epochs: 2
+nproc: 1

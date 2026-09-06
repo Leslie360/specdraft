@@ -1,0 +1,15 @@
+# Qwen3.8-27B 预设（主力目标）
+# 说明: target_layer_ids 对齐参考 DFLASH2 草稿配置（serve/warm-start 兼容）
+preset_name: qwen38-27b
+model_path: Qwen/Qwen3.8-27B
+num_layers: 5
+block_size: 8
+decay_gamma: 4
+target_layer_ids: [5, 19, 33, 47, 61]
+num_target_layers: 64
+draft_vocab_size: 248320
+seq_len: 8192
+max_anchors: 512
+lr: 3.0e-4
+epochs: 5
+nproc: 4

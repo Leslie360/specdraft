@@ -1,0 +1,14 @@
+# Qwen3.5-27B 预设（与 3.8-27B 同构，DFLASH1 长上下文论文目标）
+preset_name: qwen35-27b
+model_path: Qwen/Qwen3.5-27B
+num_layers: 5
+block_size: 8
+decay_gamma: 4
+target_layer_ids: [5, 19, 33, 47, 61]
+num_target_layers: 64
+draft_vocab_size: 248320
+seq_len: 8192
+max_anchors: 512
+lr: 3.0e-4
+epochs: 5
+nproc: 4
