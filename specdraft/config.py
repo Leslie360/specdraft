@@ -148,7 +148,7 @@ def load_config(config_path: str | None, preset: str | None, opts: list[str] | N
 
     # 2026-09-06: apply the preset's seq_len when --preset is used and config did not
     # set seq_len and opts did not override it — avoids --preset qwen38-flash-next
-    # defaulting to 8192 while production uses 65536.
+    # defaulting to 8192 while the target seq_len is 65536.
     if "seq_len" not in raw:
         _p = cfg.resolve_preset()
         if _p is not None and _p.seq_len:

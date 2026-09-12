@@ -1,4 +1,4 @@
-# Qwen3.8-Flash-Next 预设（生产目标，qwen4_exp Mamba-hybrid+MoE，seq_len 65536）
+# Qwen3.8-Flash-Next 预设（experimental，qwen4_exp Mamba-hybrid+MoE，seq_len 65536；未在 CI 端到端验证）
 # 说明: model_path 用 HF repo id（本地训练时用 QDT_MODEL_ROOT 或 model_path 覆盖为本地路径）
 preset_name: qwen38-flash-next
 model_path: Qwen/Qwen3.8-Flash-Next

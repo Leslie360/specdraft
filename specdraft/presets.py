@@ -82,7 +82,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
         block_size=8, decay_gamma=4, target_layer_ids=(1, 7, 14, 20, 26, 32, 39, 45),
         num_target_layers=48, moe=True, mamba_hybrid=True,
         seq_len=65536,
-        notes="Flash-Next (qwen4_exp Mamba-hybrid+MoE) — production target, seq_len 65536",
+        notes="Flash-Next (qwen4_exp Mamba-hybrid+MoE) — experimental, untested in CI, seq_len 65536",
     ),
 }
 

@@ -27,7 +27,7 @@ Run with `SPECDRAFT_TRAIN_PYTHON`/`SPECDRAFT_SPECULATORS_REPO` set — the unit 
 ## Conventions
 
 - **Python ≥ 3.10**, no heavy deps beyond `pydantic` / `PyYAML` / `safetensors`.
-- New model support = add a `QwenPreset` entry (`specdraft/presets.py`) **and** a `presets/<name>.yaml`; keep `seq_len` consistent between the two (production seq_len lives on the preset).
+- New model support = add a `QwenPreset` entry (`specdraft/presets.py`) **and** a `presets/<name>.yaml`; keep `seq_len` consistent between the two (the target seq_len lives on the preset).
 - `--preset` vs `--config` semantics: config YAML overrides preset fields; `--opts k=v` overrides both.
 - Every PR: update `CHANGELOG.md`, add/extend a unit test in `tests/`, keep `pytest -q` green.
 - New scripts under `vendor/` must carry the Apache-2.0 header (see existing files).
