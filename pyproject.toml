@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "specdraft"
-version = "0.1.0"
+version = "0.1.1"
 description = "Speculative-draft training pipeline (DFLASH/DSPARK/DFLASH2), orchestrating the vllm-speculators engine end to end, with preset configs for Qwen-family models"
 readme = "README.md"
 license = { text = "Apache-2.0" }
