@@ -103,12 +103,21 @@ def _loss_flags(cfg: RunConfig) -> list[str]:
 def cmd_train(cfg: RunConfig, env: Env) -> list[str]:
     tl, ntl = cfg.resolved_target_layers()
     vocab = cfg.resolved_vocab()
+    # engine passthrough opts are the highest-precedence override: a train.* key
+    # mapping to an already-emitted flag (--epochs/--lr) replaces it instead of
+    # emitting a contradictory duplicate
+    overrides = {k.removeprefix("train."): v for k, v in cfg.opts.items()
+                 if k.startswith("train.")}
+    epochs = overrides.pop("epochs", cfg.epochs)
+    lr = overrides.pop("lr", cfg.lr)
+    # data paths default to an explicit "<unset>" placeholder (dry-run must always
+    # assemble); the train stage hard-checks them on a real run
     cmd = [env.python, "-m", "torch.distributed.run", "--standalone",
            "--nproc_per_node", str(cfg.nproc),
            env.script(TRAIN),
            "--verifier-name-or-path", cfg.resolved_model_path(),
-           "--data-path", cfg.data_prep,
-           "--hidden-states-path", cfg.data_hs, "--on-missing", "raise",
+           "--data-path", cfg.data_prep or "<unset>",
+           "--hidden-states-path", cfg.data_hs or "<unset>", "--on-missing", "raise",
            "--save-path", cfg.resolved_ckpt(),
            "--draft-vocab-size", str(vocab),
            "--total-seq-len", str(cfg.seq_len),
@@ -117,8 +126,8 @@ def cmd_train(cfg: RunConfig, env: Env) -> list[str]:
            "--max-anchors", str(cfg.max_anchors),
            "--num-layers", str(cfg.num_layers),
            "--target-layer-ids", *map(str, tl),
-           "--lr", str(cfg.lr),
-           "--epochs", str(cfg.epochs),
+           "--lr", str(lr),
+           "--epochs", str(epochs),
            *_loss_flags(cfg),
            "--trust-remote-code"]
     if cfg.fsdp:
@@ -128,11 +137,9 @@ def cmd_train(cfg: RunConfig, env: Env) -> list[str]:
     if cfg.warm_start:
         cmd.append("--from-pretrained")
         cmd.append(cfg.warm_start)
-    # engine passthrough opts → append --k v
-    for k, v in cfg.opts.items():
-        if k.startswith("train."):
-            flag = k.removeprefix("train.")
-            cmd += [f"--{flag}", str(v)]
+    # remaining engine passthrough opts → append --k v
+    for flag, v in overrides.items():
+        cmd += [f"--{flag}", str(v)]
     return cmd
 
 

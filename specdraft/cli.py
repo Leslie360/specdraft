@@ -9,6 +9,9 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import sys
+
+import yaml
 
 from .config import load_config
 from .env import Env
@@ -22,32 +25,49 @@ def main(argv: list[str] | None = None):
     ap.add_argument("--preset", default=None, help="Qwen preset name (e.g. qwen38-27b)")
     ap.add_argument("--config", default=None, help="YAML or legacy .env config file")
     ap.add_argument("--stage", default="all",
-                    help="all or a single stage: " + ",".join(ORDER))
+                    help='"all" or a comma-separated subset of stages: ' + ",".join(ORDER))
     ap.add_argument("--opts", action="append", default=[], metavar="K=V",
                     help="arbitrary overrides (e.g. train.epochs=10)")
     ap.add_argument("--dry-run", action="store_true", help="print commands only, do not execute")
     args = ap.parse_args(argv)
 
-    cfg = load_config(args.config, args.preset, args.opts)
-    cfg.draft = args.draft
-    env = Env()
+    # User-input errors (bad config / unknown preset or stage / missing paths) exit
+    # with a readable message instead of a bare traceback; real engine failures still
+    # propagate (subprocess check=True raises CalledProcessError).
+    try:
+        cfg = load_config(args.config, args.preset, args.opts)
+        cfg.draft = args.draft
+        env = Env()
 
-    from .validate import validate_config
-    probs = validate_config(cfg)
-    if probs:
-        print("⚠ config validation reminders:")
-        for p in probs:
-            print("  -", p)
+        from .validate import validate_config
+        probs = validate_config(cfg)
+        if probs:
+            print("⚠ config validation reminders:")
+            for p in probs:
+                print("  -", p)
 
-    print(f"target: {cfg.draft} @ {cfg.resolved_model_path()}")
-    print(f"block={cfg.resolved_block_gamma()[0]} γ={cfg.resolved_block_gamma()[1]} "
-          f"layers={cfg.num_layers} target={cfg.resolved_target_layers()[0]}")
-    print(f"workdir={cfg.workdir} dry_run={args.dry_run}")
+        print(f"target: {cfg.draft} @ {cfg.resolved_model_path()}")
+        print(f"block={cfg.resolved_block_gamma()[0]} γ={cfg.resolved_block_gamma()[1]} "
+              f"layers={cfg.num_layers} target={cfg.resolved_target_layers()[0]}")
+        print(f"workdir={cfg.workdir} dry_run={args.dry_run}")
 
-    if args.stage == "all":
-        run_all(cfg, env, args.dry_run)
-    else:
-        run_stage(args.stage, cfg, env, args.dry_run)
+        if args.stage == "all":
+            run_all(cfg, env, args.dry_run)
+        else:
+            stages = list(dict.fromkeys(s.strip() for s in args.stage.split(",") if s.strip()))
+            if not stages:
+                raise ValueError(
+                    "--stage selected no stages (use 'all' or a comma-separated subset of: "
+                    + ",".join(ORDER) + ")"
+                )
+            run_all(cfg, env, args.dry_run, stages=stages)
+    except (ValueError, KeyError, OSError, yaml.YAMLError) as e:
+        # KeyError.args[0] is the bare key (str(e) would wrap it in quotes);
+        # everything else renders best via str() (FileNotFoundError's args are
+        # (errno, strerror) — str() gives the full "[Errno 2] ..." message)
+        msg = e.args[0] if isinstance(e, KeyError) and e.args else str(e)
+        print(f"error: {msg}", file=sys.stderr)
+        raise SystemExit(1) from None
 
     if args.dry_run:
         print("\n[dry-run] Commands printed above, nothing executed. Drop --dry-run to run for real.")

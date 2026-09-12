@@ -33,13 +33,21 @@ def _split_input(path: str, n: int, workdir: str) -> list[str]:
 
 def run_regen(cfg: RunConfig, env: Env, dry_run: bool):
     if not cfg.data_regen_jsonl:
+        if dry_run:
+            print("\n=== regen (skipped: requires data_regen_jsonl) ===")
+            return
         raise ValueError("regen requires data_regen_jsonl (prompt-only jsonl)")
     eps = cfg.regen_endpoints
     if len(eps) == 1:
+        # default output: <input-stem>_regen.jsonl next to the input; the explicit
+        # data_pretok_jsonl (if set) is only a stem hint, never a None deref
+        in_path = Path(cfg.data_regen_jsonl)
+        default_out = in_path.with_name(in_path.stem + "_regen.jsonl")
+        out = (Path(cfg.data_pretok_jsonl).with_name(Path(cfg.data_pretok_jsonl).stem + "_regen.jsonl")
+               if cfg.data_pretok_jsonl else default_out)
         cmd = cmd_regen(cfg, env, endpoint=eps[0],
                         input_jsonl=cfg.data_regen_jsonl,
-                        output_jsonl=cfg.data_pretok_jsonl.replace(".jsonl", "_regen.jsonl")
-                        or f"{Path(cfg.workdir)}/regen.jsonl")
+                        output_jsonl=str(out))
         print("\n=== regen (single instance) ===\n  " + " \\\n  ".join(cmd))
         if not dry_run:
             subprocess.run(cmd, env=env.environ(), check=True)

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .presets import QwenPreset, get_preset
 
@@ -31,6 +31,10 @@ def _load_env_file(path: Path) -> dict[str, str]:
 
 
 class RunConfig(BaseModel):
+    # validate_assignment: a bad --opts value (e.g. seq_len=abc) must raise a
+    # readable ValidationError, not silently stuff a string into the engine argv
+    model_config = ConfigDict(validate_assignment=True)
+
     # --- target ---
     preset_name: str | None = None
     model_path: str | None = None          # explicit override of the preset
@@ -95,6 +99,21 @@ class RunConfig(BaseModel):
     # --- engine passthrough opts (map to TrainConfig.flatten() dest keys) ---
     opts: dict[str, Any] = Field(default_factory=dict)
 
+    def model_post_init(self, __context) -> None:
+        """Apply preset run defaults (seq_len / max_anchors / nproc) to fields left
+        at their class default. Keeps RunConfig(preset_name=...) and load_config on
+        the same semantics; explicit --opts overrides happen after construction and
+        still win."""
+        p = self.resolve_preset()
+        if p is None:
+            return
+        if self.seq_len == RunConfig.model_fields["seq_len"].default and p.seq_len:
+            self.seq_len = p.seq_len
+        if self.max_anchors == RunConfig.model_fields["max_anchors"].default and p.max_anchors:
+            self.max_anchors = p.max_anchors
+        if self.nproc == RunConfig.model_fields["nproc"].default and p.nproc:
+            self.nproc = p.nproc
+
     def resolve_preset(self) -> QwenPreset | None:
         if self.preset_name:
             return get_preset(self.preset_name)
@@ -145,14 +164,9 @@ def load_config(config_path: str | None, preset: str | None, opts: list[str] | N
     if preset:
         raw["preset_name"] = preset
     cfg = RunConfig(**raw)
-
-    # 2026-09-06: apply the preset's seq_len when --preset is used and config did not
-    # set seq_len and opts did not override it — avoids --preset qwen38-flash-next
-    # defaulting to 8192 while the target seq_len is 65536.
-    if "seq_len" not in raw:
-        _p = cfg.resolve_preset()
-        if _p is not None and _p.seq_len:
-            cfg.seq_len = _p.seq_len
+    # preset run defaults (seq_len/max_anchors/nproc for fields left at class
+    # default) are applied by RunConfig.model_post_init — both --preset and
+    # --config paths share it; explicit --opts below still win.
 
     for o in opts or []:
         if "=" not in o:

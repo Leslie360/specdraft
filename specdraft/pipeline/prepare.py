@@ -10,8 +10,14 @@ from ..invoke import cmd_prepare
 
 def run_prepare(cfg: RunConfig, env: Env, dry_run: bool):
     if not cfg.data_pretok_jsonl:
+        if dry_run:
+            print("\n=== prepare (skipped: requires data_pretok_jsonl) ===")
+            return
         raise ValueError("prepare requires data_pretok_jsonl")
     if not cfg.data_prep:
+        if dry_run:
+            print("\n=== prepare (skipped: requires data_prep) ===")
+            return
         raise ValueError("prepare requires data_prep")
     cmd = cmd_prepare(cfg, env)
     print("\n=== prepare ===\n  " + " \\\n  ".join(cmd))

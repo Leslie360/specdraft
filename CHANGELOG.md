@@ -19,6 +19,20 @@
   methodology (multimodal OCR; Qwen3.5-122B MoE under PD serving), each row with its
   acceptance metric, speedup definition, evaluation environment, and caveats. Source
   file paths per figure are listed in `SPECSDRAFT_POLISH_REPORT.md`.
+- **Test suite hardened (9 → 85 tests)**: per-preset argv smoke for all 6 presets ×
+  3 draft types on both config paths (`--preset` table cross-checked against
+  `presets/*.yaml`), full-pipeline dry-run verification per preset, and
+  config-resolution error paths (readable `error:` messages on stderr, no bare
+  tracebacks). Making the smoke tests honest surfaced and fixed real defects: the
+  README sanity-check command crashed on missing data paths (dry-run now prints an
+  explicit skip note), `cmd_train` crashed on unset data paths in dry-run (now
+  `<unset>` placeholder), user errors printed bare tracebacks (now one readable line),
+  `--opts seq_len=abc` silently injected a string into the engine argv (now a pydantic
+  ValidationError), the `qwen36-35b` YAML target layers diverged from the python preset
+  table (`[1,6,11,16,22,27,32,37]` → `[1,6,12,17,22,27,33,38]`), a corrupted `train.*`
+  opts override could emit a contradictory duplicate flag in the train argv (override
+  now replaces), `--stage ','` silently meant "all stages" (now rejected), and
+  `--stage` gained comma-separated subset support matching the README examples.
 - **Version bumped to 0.1.1** (`pyproject.toml` + `specdraft/__init__.py`).
 
 ## [0.1.0] — 2026-09-06

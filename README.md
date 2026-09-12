@@ -117,8 +117,8 @@ export SPECDRAFT_MODEL_ROOT=/path/to/local/models             # where preset mod
 export SPECDRAFT_PROXY=http://your-proxy:port                 # optional, for HF downloads
 export SPECDRAFT_CUDA_COMPAT=/usr/local/cuda-13.0/compat      # optional, old-driver compat
 
-# 4) sanity check
-specdraft dflash --preset qwen3-8b --stage all --dry-run
+# 4) sanity check (prints every stage's argv, executes nothing)
+specdraft dflash --preset qwen3-8b --stage train,convert,serve --dry-run
 ```
 
 ## Tests
@@ -128,7 +128,10 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
-9 unit tests cover presets / config / invoke (full-pipeline argv verification).
+85 unit tests cover presets / config / invoke: per-preset argv smoke for all 6 presets ×
+3 draft types across both config paths (--preset table vs presets/*.yaml, cross-checked),
+full-pipeline dry-run verification, and config-resolution error paths (readable errors,
+no bare tracebacks).
 
 ## End-to-end example (Qwen3.8-Flash-Next, experimental)
 

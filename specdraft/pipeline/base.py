@@ -59,7 +59,8 @@ def run_stage(name: str, cfg: RunConfig, env: Env, dry_run: bool):
 
 
 def run_all(cfg: RunConfig, env: Env, dry_run: bool, stages: list[str] | None = None):
-    sel = stages or ORDER
+    # None = "all"; an explicit empty list is a no-op (the CLI rejects it earlier)
+    sel = ORDER if stages is None else stages
     for s in sel:
         if s not in ORDER:
             raise KeyError(f"unknown stage '{s}'")

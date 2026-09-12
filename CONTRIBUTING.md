@@ -19,7 +19,7 @@ export SPECDRAFT_MODEL_ROOT=/path/to/local/models
 ## Tests
 
 ```bash
-pytest -q     # 9 unit tests: presets / config / invoke (full-pipeline argv)
+pytest -q     # 85 unit tests: presets / config / invoke / error paths
 ```
 
 Run with `SPECDRAFT_TRAIN_PYTHON`/`SPECDRAFT_SPECULATORS_REPO` set — the unit tests assemble argv but do not execute the engine, so a plain python (or any python on PATH) works as `SPECDRAFT_TRAIN_PYTHON`.

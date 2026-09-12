@@ -23,7 +23,9 @@ VENDOR = REPO_ROOT / "vendor"
 def _require_env(name: str) -> str:
     v = os.environ.get(name, "")
     if not v:
-        raise RuntimeError(
+        # ValueError (not RuntimeError): this is a user-environment setup error, so
+        # cli.main's readable-error handler catches it — no bare traceback
+        raise ValueError(
             f"missing env var {name} — see README 'Environment' section"
         )
     return v

@@ -10,7 +10,13 @@ from ..validate import validate_config, validate_data_consistency
 
 
 def run_train(cfg: RunConfig, env: Env, dry_run: bool):
-    probs = validate_config(cfg) + validate_data_consistency(cfg)
+    probs = validate_config(cfg)
+    # data paths/dir existence are environment checks: irrelevant in dry-run (argv
+    # must be inspectable without data), hard-checked on a real run
+    if not dry_run:
+        if not cfg.data_prep or not cfg.data_hs:
+            probs.append("train requires data_prep + data_hs (set --config / --opts)")
+        probs += validate_data_consistency(cfg)
     if probs:
         raise ValueError("train config validation failed:\n  " + "\n  ".join(probs))
     cmd = cmd_train(cfg, env)

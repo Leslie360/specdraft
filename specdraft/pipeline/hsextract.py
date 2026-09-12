@@ -26,6 +26,9 @@ def _wait_health(url: str, timeout_s: int = 360, dry_run: bool = False) -> bool:
 
 def run_hsextract(cfg: RunConfig, env: Env, dry_run: bool):
     if not cfg.data_prep or not cfg.data_hs:
+        if dry_run:
+            print("\n=== hsextract (skipped: requires data_prep + data_hs) ===")
+            return
         raise ValueError("hsextract requires data_prep + data_hs")
     # Stage A: launch vLLM (with target_layer_ids + include-last-layer)
     vcmd = cmd_hsextract(cfg, env)

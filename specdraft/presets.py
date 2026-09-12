@@ -28,8 +28,12 @@ class QwenPreset:
     num_target_layers: int
     moe: bool = False
     mamba_hybrid: bool = False
-    # --preset seq_len; config YAML / --opts can override (config wins)
-    seq_len: int = 16384
+    # --preset run defaults; config YAML / --opts can override (config wins).
+    # These MUST mirror presets/<name>.yaml — tests/test_presets_argv.py
+    # cross-checks the table against the YAML files to keep the two paths equal.
+    seq_len: int = 8192
+    max_anchors: int = 512
+    nproc: int = 4
     notes: str = ""
 
 
@@ -53,6 +57,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
         num_layers=48, hidden_size=3072, vocab_size=248320, arch="qwen3_5_moe_text",
         block_size=16, decay_gamma=7, target_layer_ids=(1, 7, 14, 20, 26, 32, 39, 45),
         num_target_layers=48, moe=True,
+        seq_len=8192, max_anchors=224, nproc=8,
         notes="MoE target: verify cost makes draft training often unprofitable — kept for reproducibility",
     ),
     "qwen3-8b": QwenPreset(
@@ -60,6 +65,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
         num_layers=36, hidden_size=4096, vocab_size=151936, arch="qwen3",
         block_size=8, decay_gamma=4, target_layer_ids=(2, 18, 33),
         num_target_layers=36,
+        seq_len=4096, max_anchors=512, nproc=1,
         notes="smoke / single-GPU self-check",
     ),
     "qwen35-27b": QwenPreset(
@@ -74,6 +80,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
         num_layers=40, hidden_size=2048, vocab_size=248320, arch="qwen3_5_moe_text",
         block_size=8, decay_gamma=4, target_layer_ids=_uniform_layers(40, 8),
         num_target_layers=40, moe=True,
+        seq_len=8192, max_anchors=224, nproc=4,
         notes="Qwen3.6-35B-A3B MoE; has an official DFLASH v1 draft (not warm-startable to 27B)",
     ),
     "qwen38-flash-next": QwenPreset(
@@ -81,7 +88,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
         num_layers=48, hidden_size=2560, vocab_size=248320, arch="qwen4_exp_text",
         block_size=8, decay_gamma=4, target_layer_ids=(1, 7, 14, 20, 26, 32, 39, 45),
         num_target_layers=48, moe=True, mamba_hybrid=True,
-        seq_len=65536,
+        seq_len=65536, max_anchors=512, nproc=8,
         notes="Flash-Next (qwen4_exp Mamba-hybrid+MoE) — experimental, untested in CI, seq_len 65536",
     ),
 }

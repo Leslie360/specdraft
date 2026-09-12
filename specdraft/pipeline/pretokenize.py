@@ -15,8 +15,14 @@ from ..invoke import cmd_pretokenize
 
 def run_pretokenize(cfg: RunConfig, env: Env, dry_run: bool):
     if not cfg.data_regen_jsonl:
+        if dry_run:
+            print("\n=== pretokenize (skipped: requires data_regen_jsonl) ===")
+            return
         raise ValueError("pretokenize requires data_regen_jsonl")
     if not cfg.data_pretok_jsonl:
+        if dry_run:
+            print("\n=== pretokenize (skipped: requires data_pretok_jsonl) ===")
+            return
         raise ValueError("pretokenize requires data_pretok_jsonl")
     cmd = cmd_pretokenize(cfg, env)
     print("\n=== pretokenize ===\n  " + " \\\n  ".join(cmd))
