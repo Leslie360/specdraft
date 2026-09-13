@@ -54,6 +54,25 @@ def cmd_prepare(cfg: RunConfig, env: Env) -> list[str]:
             "--overwrite"]
 
 
+def _extract_max_model_len(cfg: RunConfig) -> int:
+    """vLLM KV-cache sizing for hidden-states extraction.
+
+    On a single GPU the KV cache for the full seq_len can exceed the memory left
+    after the verifier weights load (27B on one A800: 8.4 GiB needed vs ~7 GiB
+    free at 0.9 mem-frac), which crashes the engine at startup. When the data
+    actually fits, lower max-model-len so extraction runs at all. extract_max_len
+    (0 = use seq_len) lets a run override explicitly.
+    """
+    override = cfg.opts.get("extract_max_len")
+    if override:
+        return int(override)
+    # single-GPU extract of a large verifier: cap at a KV-friendly length
+    # (multi-GPU TP spreads KV across cards, so only scale down for tp=1)
+    if cfg.extract_tp == 1 and cfg.seq_len > 8192:
+        return 8192
+    return cfg.seq_len
+
+
 def cmd_hsextract(cfg: RunConfig, env: Env, *, gpus: str | None = None) -> list[str]:
     tl, _ = cfg.resolved_target_layers()
     return [env.python, env.script(LAUNCH_VLLM), cfg.resolved_model_path(),
@@ -64,7 +83,7 @@ def cmd_hsextract(cfg: RunConfig, env: Env, *, gpus: str | None = None) -> list[
             "--port", str(cfg.extract_port),
             "--tensor-parallel-size", str(cfg.extract_tp),
             "--gpu-memory-utilization", "0.9",
-            "--max-model-len", str(cfg.seq_len),
+            "--max-model-len", str(_extract_max_model_len(cfg)),
             *_vllm_args(cfg)]
 
 
