@@ -125,6 +125,8 @@ specdraft dflash --preset qwen3-8b --stage train,convert,serve --dry-run
 
 ```bash
 pip install -e ".[dev]"
+export SPECDRAFT_TRAIN_PYTHON=python   # tests assemble argv only; any python works
+export SPECDRAFT_SPECULATORS_REPO=.    # path must exist; engine is not imported by unit tests
 pytest -q
 ```
 
