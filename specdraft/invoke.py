@@ -109,12 +109,24 @@ def cmd_train(cfg: RunConfig, env: Env) -> list[str]:
     tl, ntl = cfg.resolved_target_layers()
     vocab = cfg.resolved_vocab()
     # engine passthrough opts are the highest-precedence override: a train.* key
-    # mapping to an already-emitted flag (--epochs/--lr) replaces it instead of
-    # emitting a contradictory duplicate
+    # mapping to an already-emitted flag (--block-size/--epochs/--lr/...) replaces
+    # it instead of emitting a contradictory duplicate (argparse last-wins made the
+    # old duplicate silent, but the engine rejects repeated flags)
     overrides = {k.removeprefix("train."): v for k, v in cfg.opts.items()
                  if k.startswith("train.")}
     epochs = overrides.pop("epochs", cfg.epochs)
     lr = overrides.pop("lr", cfg.lr)
+    # every dest emitted below is "owned" by the framework: a passthrough of the
+    # same dest must REPLACE it, not duplicate. Remove these from overrides up
+    # front so the tail appender never re-emits them.
+    _owned = {"block_size", "max_anchors", "num_layers", "target_layer_ids",
+              "draft_vocab_size", "total_seq_len", "speculator_type",
+              "verifier_name_or_path", "data_path", "hidden_states_path",
+              "on_missing", "save_path", "loss_fn", "per_position_loss_weight",
+              "dflash_decay_gamma", "trust_remote_code"}
+    for dest in list(overrides):
+        if dest in _owned:
+            overrides.pop(dest)
     # data paths default to an explicit "<unset>" placeholder (dry-run must always
     # assemble); the train stage hard-checks them on a real run
     cmd = [env.python, "-m", "torch.distributed.run", "--standalone",
