@@ -37,6 +37,26 @@ verifiability for open-source readers.
 - An earlier internal report's figures (accept 0.486, e2e 4.8×) were superseded and
   are not quoted.
 
+### CLI honesty and robustness fixes (with tests 9 → 85)
+
+Expanding the test suite surfaced ten real bugs, all fixed in this release:
+
+- `--stage all --dry-run` (the README sanity-check command) crashed on the first
+  data-dependent stage; dry-run now prints an explicit `(skipped: requires ...)`
+  and continues, so users can inspect every stage's argv.
+- The `--preset` table path and the `--config` YAML path had drifted apart
+  (different `seq_len` for 5/6 presets, a wrong layer list in `qwen36-35b.yaml`);
+  both paths now resolve identically, with a cross-check test that fails if the
+  table and the YAML ever diverge again.
+- `train.epochs=N` passthrough emitted a duplicate `--epochs` flag that only
+  worked by engine last-wins accident; overrides now replace the hardcoded flag.
+- All user errors (unknown preset/stage, malformed YAML, missing files or env
+  vars, bad `--opts` values) now exit 1 with a readable `error: ...` message
+  instead of a bare traceback; `--opts` values are type-validated.
+- Tests grew from 9 to 85: per-preset argv smoke for all 6 presets × 3 draft
+  types across both config paths, full-pipeline dry-run verification, and 17
+  config-resolution error-path tests.
+
 ### Engine pin unchanged
 
 - README still states validation against `vllm-project/speculators @ 4048017`. The
@@ -57,4 +77,5 @@ verifiability for open-source readers.
 - Full source-file paths behind every Results figure, the honesty-audit findings, and
   an assessment of the not-yet-taken hardening work are in `SPECSDRAFT_POLISH_REPORT.md`
   (shipped in the same branch).
-- No code behavior changed in this release; existing tests remain green.
+- Behavior changes are limited to the CLI-honesty fixes listed above; the pipeline
+  stages and engine integration are unchanged. All 85 tests pass.
