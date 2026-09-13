@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.1.2] — 2026-09-13
+
+**Real-machine validation release: the 8-stage pipeline verified end-to-end on A800s.**
+
+### Fixed (8 bugs found only by running the pipeline on real hardware/stages)
+- `--stage all --dry-run` crashed on the first data-dependent stage; dry-run now
+  prints `(skipped: requires ...)` and continues.
+- `regen` merge output overwrote the pretokenize input; `pretokenize` then truncated
+  merged data to 0 bytes — stage outputs now use dedicated paths.
+- `cmd_regen` did not pass `--model`, so the vLLM server registered the model under
+  its full path and every request 404'd.
+- `--max-samples 0` (newer engine semantic: "process nothing") produced an empty
+  hidden-states set; the flag is only forwarded when explicitly set.
+- Engine flag renames (`max_steps` → `--max-steps`) are translated; framework-owned
+  flags passed through `--opts` replace the built-in flag instead of duplicating it.
+- `convert` looked for `ckpt/config.json` while the engine saves under a checkpoint
+  subdirectory.
+- The serve stage now sets `SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK=1` to tolerate the
+  flashinfer version pinned by vLLM 0.27.x.
+- `expandable_segments` is not set during hidden-states extraction (incompatible
+  with the KV connector path).
+
+### Changed
+- **`qwen38-27b` preset defaults to block 16 / γ 7** (reference DFlash block size).
+  On an identical 53-step smoke run, block 16 trained to lower loss (0.944 vs 1.91)
+  and served with higher acceptance (1.125 vs 1.025) than block 8.
+- README Status/preset table: `qwen38-27b` and `qwen3-8b` marked as verified
+  end-to-end outside CI; bugs table gained a 7th row (cross-stage data flow +
+  engine CLI contract); Setup documents the flashinfer version conflict.
+
 ## [0.1.1] — 2026-09-12
 
 **Documentation-and-validation polish release: honesty corrections + a sourced Results section.**

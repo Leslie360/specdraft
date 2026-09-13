@@ -14,7 +14,7 @@ An end-to-end orchestration pipeline for **training speculative-decoding draft m
 
 It wraps [vllm-speculators](https://github.com/vllm-project/speculators) as the training engine and adds the glue that makes it usable for real training and serving pipelines: an 8-stage pipeline, model presets, multi-instance serving, and fixes for several real-world integration bugs.
 
-> **Status**: v0.1.1. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. End-to-end training of the primary target (Qwen3.8-27B) was exercised on an internal 8×A800 node outside CI. No preset is end-to-end validated in CI; presets that are neither exercised by CI nor by the internal run are marked *untested in CI*. See [Results](#results) for independently measured performance of drafts trained with this methodology.
+> **Status**: v0.1.2. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. The primary target (Qwen3.8-27B, block 16) and the qwen3-8b preset have been verified end-to-end on A800 nodes outside CI (regen → bench); all other presets remain marked *untested in CI*. See [Results](#results) for measured performance.
 
 ## Pipeline (8 stages)
 
@@ -47,7 +47,10 @@ environment-specific (see the "Evaluated on" column). Neither row measures specd
 own Qwen output: row 1 is a non-Qwen multimodal model, row 2 is a Qwen3.5-122B
 deployment result. End-to-end training of the primary target (Qwen3.8-27B) was
 exercised on an internal 8×A800 node outside CI; its production numbers are not yet
-published.
+published. As of v0.1.2, specdraft's own Qwen3.8-27B draft (block 16, short run)
+has been verified through the full pipeline on a 4×A800 node; its acceptance on
+50 held-out samples was 1.125 (a 53-step smoke draft — a sanity signal, not a
+performance number).
 
 | Draft architecture | Acceptance | E2E speedup vs AR | Evaluated on |
 |---|---|---|---|
@@ -77,14 +80,14 @@ Notes:
 
 | preset | model | block/γ | target layers | notes |
 |---|---|---|---|---|
-| `qwen38-27b` | Qwen3.8-27B | 8/4 | 5 19 33 47 61 | ★ primary target; end-to-end trained internally on 8×A800 (not in CI) |
+| `qwen38-27b` | Qwen3.8-27B | 16/7 | 5 19 33 47 61 | ★ primary target; full 8-stage pipeline verified end-to-end on 4×A800 (not in CI) |
 | `qwen35-122b` | Qwen3.5-122B-A10B | 16/7 | 1 7 14 20 26 32 39 45 | MoE; untested in CI — kept for reproducibility |
-| `qwen3-8b` | Qwen3-8B | 8/4 | 2 18 33 | untested in CI; intended for smoke / single-GPU self-check |
+| `qwen3-8b` | Qwen3-8B | 8/4 | 2 18 33 | verified end-to-end (train+serve+bench) on a single A800; also the smoke-test preset |
 | `qwen35-27b` | Qwen3.5-27B | 8/4 | 5 19 33 47 61 | same architecture family as 3.8-27B; untested in CI |
 | `qwen36-35b` | Qwen3.6-35B-A3B | 8/4 | uniform 8 layers | MoE; untested in CI |
 | `qwen38-flash-next` | Qwen3.8-Flash-Next | 8/4 | 1 7 14 20 26 32 39 45 | experimental (qwen4_exp Mamba-hybrid+MoE, seq_len 65536); untested in CI |
 
-`model_path` resolves under `$SPECDRAFT_MODEL_ROOT`, or override it per-run (`--config` YAML / `--opts model_path=...`) with a local path or HF repo id.
+`model_path` resolves under `$SPECDRAFT_MODEL_ROOT`, or override it per-run (`--config` YAML / `--opts model_path=...`) with a local path or HF repo id. `qwen38-27b` defaults to block 16 / γ 7 (the reference DFlash block size): on a 53-step smoke run it trained to lower loss (0.944 vs 1.91 at block 8) and served with higher acceptance (1.125 vs 1.025) under identical conditions.
 
 ## Real-world bugs this pipeline fixes
 
@@ -96,10 +99,11 @@ Notes:
 | 4 | DFLASH2 needs a full, exact argv (selector/conv/sliding-window flags + full vocab) | `convert`/`train` stages embed the complete argv incl. nested `dflash_config` |
 | 5 | serving two 27B targets on 4 GPUs | multi-instance serve with per-instance `CUDA_VISIBLE_DEVICES` + TP assignment |
 | 6 | `regen` is slow at scale | multi-instance sharded regeneration with resume |
+| 7 | cross-stage data-flow breaks in real runs (regen merge overwriting pretokenize output; `--max-samples 0` meaning "process nothing" on newer engines; convert expecting `ckpt/config.json` while the engine saves under a subdirectory) and engine CLI contract drift (flag renames, duplicate flags silently resolved by last-wins) | stage outputs use dedicated paths; new-engine flags translated and framework-owned flags de-duplicated; each stage validated in a real 8-stage run on 4×A800 |
 
 ## Setup
 
-Requirements: Python ≥ 3.10. Training needs a venv with `torch`, `vllm`, `transformers` and `speculators`; serving needs `sglang`.
+Requirements: Python ≥ 3.10. Training needs a venv with `torch`, `vllm`, `transformers` and `speculators`; serving needs `sglang`. If vLLM and sglang share one machine, their `flashinfer` versions may conflict (vLLM 0.27.x aligns with `flashinfer==0.6.16.post3`, newer sglang may assert ≥ 0.6.17) — the `serve` stage sets `SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK=1` to tolerate the pinned version.
 
 ```bash
 # 1) clone the engine repo (its scripts/ are invoked by this pipeline)
