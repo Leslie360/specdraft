@@ -17,7 +17,7 @@ def test_presets():
     p = get_preset("qwen38-27b")
     assert p.num_layers == 64 and p.hidden_size == 5120 and p.vocab_size == 248320
     assert p.target_layer_ids == (5, 19, 33, 47, 61)
-    assert p.block_size == 8 and p.decay_gamma == 4
+    assert p.block_size == 16 and p.decay_gamma == 7
     assert p.mamba_hybrid
     # Flash-Next preset present (experimental, seq_len 65536, not validated in CI)
     pn = get_preset("qwen38-flash-next")
@@ -30,7 +30,7 @@ def test_presets():
 def test_load_preset_yaml():
     cfg = load_config("presets/qwen38-27b.yaml", None, [])
     assert cfg.draft_vocab_size == 248320
-    assert cfg.resolved_block_gamma() == (8, 4)
+    assert cfg.resolved_block_gamma() == (16, 7)
     assert cfg.resolved_target_layers() == ([5, 19, 33, 47, 61], 64)
 
 
@@ -50,7 +50,7 @@ def test_train_cmd_dflash():
     # PP1: dflash loss + gamma
     assert "--speculator-type dflash" in s
     assert "--per-position-loss-weight dpace" in s
-    assert "--dflash-decay-gamma 4" in s
+    assert "--dflash-decay-gamma 7" in s
     assert "--on-missing raise" in s
     # custom_all_reduce disabled (hsextract/serve commands; not in train)
 
@@ -99,5 +99,5 @@ def test_validate_block_gamma():
     from specdraft.validate import validate_config
     cfg = load_config("presets/qwen38-27b.yaml", None, [])
     assert validate_config(cfg) == []
-    cfg.decay_gamma = 7  # block8 with gamma 7 → should fail
+    cfg.decay_gamma = 4  # block16 with gamma 4 → should fail
     assert any("decay_gamma" in p for p in validate_config(cfg))

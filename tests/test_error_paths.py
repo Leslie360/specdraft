@@ -151,6 +151,6 @@ def test_validate_gamma_mismatch_warns_but_train_run_enforces(tmp_path):
     from specdraft.pipeline.train import run_train
 
     cfg = RunConfig(preset_name="qwen38-27b", data_prep="/tmp/prep", data_hs="/tmp/hs",
-                    decay_gamma=7)
+                    decay_gamma=4)
     with pytest.raises(ValueError, match="decay_gamma"):
         run_train(cfg, None, dry_run=False)

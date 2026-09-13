@@ -45,7 +45,7 @@ EXPECTED = {
                        nproc=4, layers=[5, 19, 33, 47, 61], ntl=64),
     "qwen36-35b": dict(block=8, gamma=4, vocab=248320, seq_len=8192, anchors=224,
                        nproc=4, layers=[1, 6, 12, 17, 22, 27, 33, 38], ntl=40),
-    "qwen38-27b": dict(block=8, gamma=4, vocab=248320, seq_len=8192, anchors=512,
+    "qwen38-27b": dict(block=16, gamma=7, vocab=248320, seq_len=8192, anchors=512,
                        nproc=4, layers=[5, 19, 33, 47, 61], ntl=64),
     "qwen38-flash-next": dict(block=8, gamma=4, vocab=248320, seq_len=65536, anchors=512,
                               nproc=8, layers=[1, 7, 14, 20, 26, 32, 39, 45], ntl=48),

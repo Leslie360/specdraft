@@ -48,7 +48,7 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
     "qwen38-27b": QwenPreset(
         name="qwen38-27b", model_path=f"{MODEL_ROOT}/Qwen3.8-27B",
         num_layers=64, hidden_size=5120, vocab_size=248320, arch="qwen3_5_text",
-        block_size=8, decay_gamma=4, target_layer_ids=(5, 19, 33, 47, 61),
+        block_size=16, decay_gamma=7, target_layer_ids=(5, 19, 33, 47, 61),
         num_target_layers=64, mamba_hybrid=True,
         notes="primary; target_layer_ids aligned with the reference DFLASH2 draft (serve/warm-start compatible)",
     ),
