@@ -146,7 +146,9 @@ def test_serve_argv_smoke(preset):
     flags = _flags(cmd_serve(cfg, Env(), port=8010, gpus="0,1", tp=2))
     assert flags["--speculative-algorithm"] == ["DFLASH"]
     assert flags["--speculative-draft-model-path"] == [cfg.resolved_servable()]
-    assert flags["--speculative-num-draft-tokens"] == ["8"]
+    # num-draft-tokens must match the draft's block_size (DFLASH proposes one
+    # token per block slot); qwen35-122b is block=16, the rest are block=8
+    assert flags["--speculative-num-draft-tokens"] == [str(EXPECTED[preset]["block"])]
     assert flags["--tp"] == ["2"]
     assert flags["--port"] == ["8010"]
     assert flags["--context-length"] == [str(cfg.serve_ctx)]
@@ -211,14 +213,23 @@ def test_train_toggles_and_passthrough():
     assert "--from-pretrained /tmp/warm" in s
 
 
+def test_train_max_steps_passthrough_uses_hyphen_flag():
+    """Engine CLI renders dest underscores as hyphens; --max-steps must not be
+    emitted as --max_steps (the engine rejects the underscore form)."""
+    cfg = _cfg("qwen38-27b", opts={"train.max_steps": 300})
+    s = " ".join(cmd_train(cfg, Env()))
+    assert "--max-steps 300" in s
+    assert "--max_steps" not in s
+
+
 def test_train_passthrough_overrides_hardcoded_flag():
     """train.epochs/--opts must REPLACE the hardcoded --epochs, not duplicate it
     (argparse last-wins made the old duplicate silent)."""
     cfg = _cfg("qwen38-27b", opts={"train.epochs": 10, "train.scheduler_type": "linear"})
     flags = _flags(cmd_train(cfg, Env()))
     assert flags["--epochs"] == ["10"]
-    # passthrough renders the engine dest name verbatim (single underscores)
-    assert flags["--scheduler_type"] == ["linear"]
+    # passthrough renders the engine dest with underscores→hyphens (--max_steps -> --max-steps)
+    assert flags["--scheduler-type"] == ["linear"]
     cfg2 = _cfg("qwen38-27b")
     assert _flags(cmd_train(cfg2, Env()))["--epochs"] == [str(cfg2.epochs)]
 

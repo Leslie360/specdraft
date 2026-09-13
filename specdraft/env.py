@@ -96,12 +96,20 @@ class Env:
             env["LD_LIBRARY_PATH"] = cuda_compat + (
                 ":" + env["LD_LIBRARY_PATH"] if env.get("LD_LIBRARY_PATH") else ""
             )
-        env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+        # vLLM's hidden-states KV connector rejects expandable_segments (CUDA VMM
+        # remap invalidates pinned KV memory); the extraction server must not set it.
+        if not for_vllm:
+            env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
         env["FLASHINFER_DISABLE_VERSION_CHECK"] = "1"
         # PP1: never set VLLM_BATCH_INVARIANT (conflicts with GDN)
         env.pop("VLLM_BATCH_INVARIANT", None)
         if for_sglang:
             env["SGLANG_DISABLE_OVERLAP_SCHEDULER"] = env.get("SGLANG_DISABLE_OVERLAP_SCHEDULER", "")
+            # sglang asserts flashinfer>=0.6.17 at import; on a vLLM-tuned host the
+            # two stacks can legitimately pin different flashinfer versions (vLLM
+            # needs cubin==python, sglang needs python>=0.6.17). Skip the sglang
+            # kernel-version gate so serve can share the node with extraction.
+            env["SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK"] = "1"
         return env
 
     def use_proxy(self, env: dict[str, str] | None = None) -> dict[str, str]:

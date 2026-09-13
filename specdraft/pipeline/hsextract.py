@@ -36,7 +36,7 @@ def run_hsextract(cfg: RunConfig, env: Env, dry_run: bool):
     if dry_run:
         print("\n=== hsextract B: offline hs extraction ===\n  " + " \\\n  ".join(cmd_hsoffline(cfg, env)))
         return
-    envdict = env.environ()
+    envdict = env.environ(for_vllm=True)
     proc = subprocess.Popen(vcmd, env=envdict)
     try:
         ok = _wait_health(f"http://127.0.0.1:{cfg.extract_port}")

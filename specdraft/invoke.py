@@ -12,6 +12,8 @@ Script sources:
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 from .config import RunConfig
 from .env import Env
 
@@ -32,10 +34,10 @@ def _vllm_args(cfg: RunConfig) -> list[str]:
     ]
 
 
-def cmd_pretokenize(cfg: RunConfig, env: Env) -> list[str]:
+def cmd_pretokenize(cfg: RunConfig, env: Env, input_jsonl: str | None = None) -> list[str]:
     return [env.python, env.vendored("pre_tokenize.py"),
             "--model", cfg.resolved_model_path(),
-            "--input", cfg.data_regen_jsonl,
+            "--input", input_jsonl or cfg.data_regen_jsonl,
             "--output", cfg.data_pretok_jsonl,
             *(["--max", str(cfg.opts.get("pretokenize_max"))] if "pretokenize_max" in cfg.opts else [])]
 
@@ -67,10 +69,13 @@ def cmd_hsextract(cfg: RunConfig, env: Env, *, gpus: str | None = None) -> list[
 
 
 def cmd_hsoffline(cfg: RunConfig, env: Env) -> list[str]:
+    # engine semantics: --max-samples 0 means "process zero samples"; omitting it
+    # means unlimited. Only pass it through when the user sets hs_max_samples.
+    max_samples = cfg.opts.get("hs_max_samples")
     return [env.python, env.script(HS_OFFLINE),
             "--preprocessed-data", cfg.data_prep,
             "--output", cfg.data_hs,
-            "--max-samples", str(cfg.opts.get("hs_max_samples", 0) or 0),
+            *(["--max-samples", str(max_samples)] if max_samples else []),
             "--endpoint", f"http://127.0.0.1:{cfg.extract_port}/v1",
             "--concurrency", str(cfg.opts.get("hs_concurrency", 32)),
             "--request-timeout", "600"]
@@ -137,15 +142,31 @@ def cmd_train(cfg: RunConfig, env: Env) -> list[str]:
     if cfg.warm_start:
         cmd.append("--from-pretrained")
         cmd.append(cfg.warm_start)
-    # remaining engine passthrough opts → append --k v
-    for flag, v in overrides.items():
-        cmd += [f"--{flag}", str(v)]
+    # remaining engine passthrough opts → append --k v (engine CLI renders dests
+    # with underscores as hyphens: --max_steps -> --max-steps)
+    for dest, v in overrides.items():
+        cmd += [f"--{dest.replace('_', '-')}", str(v)]
     return cmd
+
+
+def _convert_source_dir(cfg: RunConfig) -> str:
+    """The engine saves checkpoints as ckpt/<name>/config.json — the convert step
+    must point at the checkpoint subdirectory, not the ckpt parent. Prefer
+    checkpoint_best (the engine's tracked best), falling back to the newest
+    epoch*_end dir when checkpoint_best is absent."""
+    ckpt_root = Path(cfg.resolved_ckpt())
+    best = ckpt_root / "checkpoint_best"
+    if best.is_dir() and (best / "config.json").is_file():
+        return str(best)
+    ends = sorted(ckpt_root.glob("epoch*_end"))
+    if ends:
+        return str(ends[-1])
+    return str(ckpt_root)
 
 
 def cmd_convert(cfg: RunConfig, env: Env) -> list[str]:
     return [env.python, env.vendored("convert_servable.py"),
-            cfg.resolved_ckpt(), cfg.resolved_servable(),
+            _convert_source_dir(cfg), cfg.resolved_servable(),
             "--arch", cfg.draft,
             "--num-target-layers", str(cfg.resolved_target_layers()[1])]
 
@@ -166,7 +187,10 @@ def cmd_serve(cfg: RunConfig, env: Env, *, port: int, gpus: str, tp: int,
            "--port", str(port),
            "--speculative-algorithm", algo,
            "--speculative-draft-model-path", draft,
-           "--speculative-num-draft-tokens", "8"]
+           # DFLASH proposes one token per block slot, so num-draft-tokens must
+           # equal the draft's block_size (serve with a mismatched count wastes
+           # drafts at best and distorts acceptance at worst).
+           "--speculative-num-draft-tokens", str(cfg.resolved_block_gamma()[0])]
     return cmd
 
 
@@ -180,6 +204,10 @@ def cmd_bench(cfg: RunConfig, env: Env, *, port: int) -> list[str]:
 def cmd_regen(cfg: RunConfig, env: Env, *, endpoint: str, input_jsonl: str, output_jsonl: str) -> list[str]:
     return [env.python, env.vendored("regen_responses.py"),
             "--endpoint", endpoint,
+            # the served model name must match the server's model id; when a
+            # server is launched without --served-model-name, vLLM uses the
+            # model *path* as the id, so pass the resolved path through
+            "--model", cfg.resolved_model_path(),
             "--input", input_jsonl,
             "--output", output_jsonl,
             "--concurrency", str(cfg.regen_concurrency)]
