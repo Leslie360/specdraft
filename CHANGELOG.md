@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3] — 2026-09-15
+
+**Hotfix: single-GPU hidden-states extraction no longer OOMs at vLLM startup.**
+
+### Fixed
+- `hsextract` on a single GPU could request a KV cache larger than the memory left
+  after verifier weights load (Qwen3.5-27B: 8.4 GiB needed vs ~7 GiB free), crashing
+  vLLM before extraction started. TP=1 now caps `max-model-len` to a KV-friendly
+  value; `extract_max_len` overrides.
+
+### Validation
+- Exercised on a real A800 node: single-GPU extraction on Qwen3.5-27B and
+  Qwen3.6-35B-A3B (previously crashing), 4×A800 TP2 path unchanged.
+- 86 unit tests green.
+
 ## [0.1.2] — 2026-09-13
 
 **Real-machine validation release: the 8-stage pipeline verified end-to-end on A800s.**
