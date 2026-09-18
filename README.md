@@ -105,6 +105,17 @@ Notes:
 
 Requirements: Python ≥ 3.10. Training needs a venv with `torch`, `vllm`, `transformers` and `speculators`; serving needs `sglang`. If vLLM and sglang share one machine, their `flashinfer` versions may conflict (vLLM 0.27.x aligns with `flashinfer==0.6.16.post3`, newer sglang may assert ≥ 0.6.17) — the `serve` stage sets `SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK=1` to tolerate the pinned version.
 
+> **Engine scope — read this before expecting the training-speedup options.**
+> This pipeline orchestrates *upstream* `vllm-speculators` and is validated
+> against `vllm-project/speculators @ 4048017`. The hidden-states prefetch
+> pipeline (`hs_prefetch`), its cache/leader options, and the `--*-hidden-states-*`
+> family of flags are **not in upstream** — they live in a downstream fork and are
+> therefore unavailable here. Run against upstream and those options simply do not
+> exist; passing them raises an argparse error rather than degrading silently.
+> The 8-stage pipeline itself is engine-agnostic and works against upstream as-is.
+> Once the relevant upstream PRs land, this section will be updated with the
+> minimum engine revision that carries them.
+
 ```bash
 # 1) clone the engine repo (its scripts/ are invoked by this pipeline)
 git clone https://github.com/vllm-project/speculators.git
