@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.1.4] — 2026-09-20
+
+**Consolidated release: the two unmerged fix branches + the ⑥ specdraft patch + a full-repo audit, shipped as one version.**
+
+This is the unified release point for everything that landed after v0.1.3. It
+merges the `docs/housekeeping-0920` branch (dangling-reference fixes, README
+status, verification-bundle link), the `fix/convert-sample-from-anchor` branch
+(convert layout self-description), the preset corrections from the ⑥ patch
+(audited against the real dflash2 training command), and a repository-wide
+audit sweep. Earlier v0.1.x entries below are retained for history.
+
+### Fixed
+- **convert wrote `sample_from_anchor: null` for checkpoints that do not declare
+  the field** — the serving engine reads `bool(cfg.get("sample_from_anchor",
+  True))`, so `null` silently became `False` (1+N layout) instead of the
+  speculators default (True = anchor-first). The default is now resolved at
+  export (`bool(src.get(..., True))`).
+- **dflash2 servable configs did not declare their layout** —
+  `sample_from_anchor` is now carried into the nested `dflash_config`, so the
+  artifact is self-describing instead of depending on the serving engine's
+  default (the failure mode behind "checkpoint silently served shifted by one
+  position").
+- **qwen38-flash-next preset did not match the real dflash2 training run**
+  (values read verbatim from the `dflash2_q4_b4h24` train command):
+  `block_size` 8 → 4, `seq_len` 65536 → 16384 (65536 was the backbone-training
+  figure; the draft trained at `--total-seq-len 16384`), `epochs` 10 → 5,
+  `nproc` 8 → 4. The missing dflash2 architecture fields are now documented in
+  the preset header: the selector/conv stack is auto-appended by the pipeline
+  for `draft=dflash2` with the trained values; `--optimizer muon`,
+  `--noise-std 0.05`, `--muon-ns-steps 3` are disclosed as not emitted by
+  default (engine passthrough `--opts train.*` can supply them).
+  `target_layer_ids` intentionally untouched.
+- Dangling references to the internal `SPECSDRAFT_POLISH_REPORT.md` repointed
+  to `docs/RESULTS_SOURCES.md` (RELEASE_NOTES_v0.1.1 ×2, CHANGELOG v0.1.1).
+- README unit-test count drift (85 → 86, actual since v0.1.3).
+
+### Changed
+- README Status v0.1.3 → v0.1.4; preset table and end-to-end example now show
+  qwen38-flash-next at block 4 / γ 4 / seq_len 16384.
+- New README "Independent verification" section linking the
+  `verification/sglang-38191-122b-mtp3-pd-soak` bundle (1-hour PD soak,
+  sglang#38191).
+- **Version bumped to 0.1.4** (`pyproject.toml` + `specdraft/__init__.py`).
+- Full release notes: [RELEASE_NOTES_v0.1.4.md](RELEASE_NOTES_v0.1.4.md).
+
+### Validation
+- 86 unit tests green (preset table ↔ YAML cross-check, per-preset argv smoke
+  on both config paths, full-pipeline dry-run, error paths).
+- convert layout behavior re-verified against the ⑥ patch matrix: declared
+  False/True round-trips unchanged; an absent field now exports `True`
+  (anchor-first) for both dspark and dflash2 instead of `null`.
+
 ## [0.1.3] — 2026-09-15
 
 **Hotfix: single-GPU hidden-states extraction no longer OOMs at vLLM startup.**

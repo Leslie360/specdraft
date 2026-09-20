@@ -14,7 +14,7 @@ An end-to-end orchestration pipeline for **training speculative-decoding draft m
 
 It wraps [vllm-speculators](https://github.com/vllm-project/speculators) as the training engine and adds the glue that makes it usable for real training and serving pipelines: an 8-stage pipeline, model presets, multi-instance serving, and fixes for several real-world integration bugs.
 
-> **Status**: v0.1.3. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. The primary target (Qwen3.8-27B, block 16) and the qwen3-8b preset have been verified end-to-end on A800 nodes outside CI (regen → bench); all other presets remain marked *untested in CI*. See [Results](#results) for measured performance.
+> **Status**: v0.1.4. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. The primary target (Qwen3.8-27B, block 16) and the qwen3-8b preset have been verified end-to-end on A800 nodes outside CI (regen → bench); all other presets remain marked *untested in CI*. See [Results](#results) for measured performance.
 
 ## Pipeline (8 stages)
 
