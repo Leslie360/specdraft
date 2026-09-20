@@ -72,7 +72,11 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
             "markov_head_type": src_cfg.get("markov_head_type", "vanilla"),
             "enable_confidence_head": src_cfg.get("enable_confidence_head", False),
             "confidence_head_with_markov": src_cfg.get("confidence_head_with_markov", False),
-            "sample_from_anchor": src_cfg.get("sample_from_anchor"),
+            # NOTE: an absent field must NOT be written as `null`. The engine reads
+            # `bool(_cfg_get(cfg, "sample_from_anchor", True))`, so `null` -> bool(None) -> False,
+            # i.e. a checkpoint that simply does not declare the field would be silently served as
+            # 1+N instead of the speculators default (True = anchor-first). Resolve the default here.
+            "sample_from_anchor": bool(src_cfg.get("sample_from_anchor", True)),
         })
     # DFlash2-only: nested dflash_config (read by sglang DFlash2DraftModel; active when selector_rank is truthy)
     if arch == "dflash2":
@@ -85,6 +89,12 @@ def build_servable_config(src_cfg: dict, arch: str, num_target_layers: int) -> d
             "mask_token_id": src_cfg.get("mask_token_id"),
             "target_layer_ids": src_cfg.get("aux_hidden_state_layer_ids"),
             "num_target_layers": num_target_layers,
+            # The layout the draft was TRAINED with. The speculators field is `sample_from_anchor`
+            # (False = anchor is the bonus token, only mask positions predict = 1+N;
+            #  True = anchor-first). Without this the servable artifact does not say which layout
+            # it wants, and the answer then depends on whatever the serving engine's default is -
+            # which is how a checkpoint gets silently served shifted by one position.
+            "sample_from_anchor": bool(src_cfg.get("sample_from_anchor", True)),
         }
     return cfg
 
