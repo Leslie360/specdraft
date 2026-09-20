@@ -99,7 +99,7 @@ training-pipeline benchmarks.
 | `qwen3-8b` | Qwen3-8B | 8/4 | 2 18 33 | verified end-to-end (train+serve+bench) on a single A800; also the smoke-test preset |
 | `qwen35-27b` | Qwen3.5-27B | 8/4 | 5 19 33 47 61 | same architecture family as 3.8-27B; untested in CI |
 | `qwen36-35b` | Qwen3.6-35B-A3B | 8/4 | uniform 8 layers | MoE; untested in CI |
-| `qwen38-flash-next` | Qwen3.8-Flash-Next | 8/4 | 1 7 14 20 26 32 39 45 | experimental (qwen4_exp Mamba-hybrid+MoE, seq_len 65536); untested in CI |
+| `qwen38-flash-next` | Qwen3.8-Flash-Next | 4/4 | 1 7 14 20 26 32 39 45 | experimental (qwen4_exp Mamba-hybrid+MoE, seq_len 16384); untested in CI |
 
 `model_path` resolves under `$SPECDRAFT_MODEL_ROOT`, or override it per-run (`--config` YAML / `--opts model_path=...`) with a local path or HF repo id. `qwen38-27b` defaults to block 16 / γ 7 (the reference DFlash block size): on a 53-step smoke run it trained to lower loss (0.944 vs 1.91 at block 8) and served with higher acceptance (1.125 vs 1.025) under identical conditions.
 
@@ -166,7 +166,7 @@ no bare tracebacks).
 
 ## End-to-end example (Qwen3.8-Flash-Next, experimental)
 
-`--preset qwen38-flash-next` carries the target seq_len (65536) and target-layer
+`--preset qwen38-flash-next` carries the target seq_len (16384) and target-layer
 layout, so every stage's argv can be inspected with a dry-run. This section is an
 illustration of the pipeline wiring, **not** a validated reproduction — the
 flash-next preset is experimental and has not been validated end-to-end in this

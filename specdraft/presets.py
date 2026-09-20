@@ -86,10 +86,11 @@ QWEN_PRESETS: dict[str, QwenPreset] = {
     "qwen38-flash-next": QwenPreset(
         name="qwen38-flash-next", model_path=f"{MODEL_ROOT}/Qwen3.8-Flash-Next",
         num_layers=48, hidden_size=2560, vocab_size=248320, arch="qwen4_exp_text",
-        block_size=8, decay_gamma=4, target_layer_ids=(1, 7, 14, 20, 26, 32, 39, 45),
+        block_size=4, decay_gamma=4, target_layer_ids=(1, 7, 14, 20, 26, 32, 39, 45),
         num_target_layers=48, moe=True, mamba_hybrid=True,
-        seq_len=65536, max_anchors=512, nproc=8,
-        notes="Flash-Next (qwen4_exp Mamba-hybrid+MoE) — experimental, untested in CI, seq_len 65536",
+        seq_len=16384, max_anchors=512, nproc=4,
+        notes="Flash-Next (qwen4_exp Mamba-hybrid+MoE) — experimental, untested in CI; "
+              "block/seq_len/epochs/nproc mirror the real dflash2 run (dflash2_q4_b4h24)",
     ),
 }
 

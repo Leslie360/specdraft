@@ -1,15 +1,25 @@
-# Qwen3.8-Flash-Next 预设（experimental，qwen4_exp Mamba-hybrid+MoE，seq_len 65536；未在 CI 端到端验证）
+# Qwen3.8-Flash-Next 预设（experimental，qwen4_exp Mamba-hybrid+MoE，seq_len 16384；未在 CI 端到端验证）
+# 字段值对照真实 dflash2 训练运行（dflash2_q4_b4h24 的 train_command.txt 逐字实读）：
+#   block_size 4 / seq_len 16384 / epochs 5 / nproc 4（lr、num_layers、target_layer_ids、
+#   draft_vocab_size、max_anchors、decay_gamma 与真实命令一致，未动）。
+# dflash2 架构字段（selector/conv 栈）：本 YAML schema 不含这些键，specdraft pipeline 对
+# draft=dflash2 自动附加以下与真实训练命令一致的参数（见 specdraft/invoke.py _loss_flags）：
+#   --selector-rank 256 --selector-top-k 16 --conv-kernel-size 2 --conv-group-size 16
+#   --sliding-window-non-causal --loss-fn kl_div --per-position-loss-weight fixed-exp-decay
+# 真实命令还显式传了 --optimizer muon --noise-std 0.05 --muon-ns-steps 3，pipeline 未默认透传
+# （RunConfig.optimizer 存在但未接入 argv）；需要时用引擎透传补齐，例如
+#   --opts train.optimizer=muon train.noise_std=0.05 train.muon_ns_steps=3
 # 说明: model_path 用 HF repo id（本地训练时用 QDT_MODEL_ROOT 或 model_path 覆盖为本地路径）
 preset_name: qwen38-flash-next
 model_path: Qwen/Qwen3.8-Flash-Next
 num_layers: 5
-block_size: 8
+block_size: 4
 decay_gamma: 4
 target_layer_ids: [1, 7, 14, 20, 26, 32, 39, 45]
 num_target_layers: 48
 draft_vocab_size: 248320
-seq_len: 65536
+seq_len: 16384
 max_anchors: 512
 lr: 3.0e-4
-epochs: 10
-nproc: 8
+epochs: 5
+nproc: 4
