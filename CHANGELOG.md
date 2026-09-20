@@ -63,7 +63,7 @@
 - **New README "Results" section**: measured performance of drafts trained with this
   methodology (multimodal OCR; Qwen3.5-122B MoE under PD serving), each row with its
   acceptance metric, speedup definition, evaluation environment, and caveats. Source
-  file paths per figure are listed in `SPECSDRAFT_POLISH_REPORT.md`.
+  details per figure are documented in [docs/RESULTS_SOURCES.md](docs/RESULTS_SOURCES.md).
 - **Test suite hardened (9 → 85 tests)**: per-preset argv smoke for all 6 presets ×
   3 draft types on both config paths (`--preset` table cross-checked against
   `presets/*.yaml`), full-pipeline dry-run verification per preset, and

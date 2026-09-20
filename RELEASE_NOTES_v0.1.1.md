@@ -32,8 +32,8 @@ verifiability for open-source readers.
   serving). Each row states the acceptance metric, the speedup definition
   (throughput ratio vs AR), the exact evaluation environment, and the metric caveats.
 - These figures are environment-specific measurements, not specdraft performance
-  promises; source-file paths for every figure are listed in
-  `SPECSDRAFT_POLISH_REPORT.md`.
+  promises; per-figure source details, the honesty audit, and the hardening backlog
+  are documented in [docs/RESULTS_SOURCES.md](docs/RESULTS_SOURCES.md).
 - An earlier internal report's figures (accept 0.486, e2e 4.8×) were superseded and
   are not quoted.
 
@@ -74,8 +74,8 @@ Expanding the test suite surfaced ten real bugs, all fixed in this release:
 
 ## Notes
 
-- Full source-file paths behind every Results figure, the honesty-audit findings, and
-  an assessment of the not-yet-taken hardening work are in `SPECSDRAFT_POLISH_REPORT.md`
-  (shipped in the same branch).
+- Per-figure source details, the honesty-audit findings, and an assessment of the
+  not-yet-taken hardening work are in
+  [docs/RESULTS_SOURCES.md](docs/RESULTS_SOURCES.md).
 - Behavior changes are limited to the CLI-honesty fixes listed above; the pipeline
   stages and engine integration are unchanged. All 85 tests pass.

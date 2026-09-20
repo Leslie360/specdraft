@@ -14,7 +14,7 @@ An end-to-end orchestration pipeline for **training speculative-decoding draft m
 
 It wraps [vllm-speculators](https://github.com/vllm-project/speculators) as the training engine and adds the glue that makes it usable for real training and serving pipelines: an 8-stage pipeline, model presets, multi-instance serving, and fixes for several real-world integration bugs.
 
-> **Status**: v0.1.2. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. The primary target (Qwen3.8-27B, block 16) and the qwen3-8b preset have been verified end-to-end on A800 nodes outside CI (regen → bench); all other presets remain marked *untested in CI*. See [Results](#results) for measured performance.
+> **Status**: v0.1.3. The 8-stage pipeline is complete; CI (GitHub Actions) validates configuration, preset resolution, and full-pipeline argv assembly via unit tests — no engine, GPU, or model is executed in CI. The primary target (Qwen3.8-27B, block 16) and the qwen3-8b preset have been verified end-to-end on A800 nodes outside CI (regen → bench); all other presets remain marked *untested in CI*. See [Results](#results) for measured performance.
 
 ## Pipeline (8 stages)
 
@@ -75,6 +75,20 @@ Notes:
   DFLASH2 row above and are not quoted here.
 - Every figure above comes from a documented internal evaluation report; measurement
   methodology and source details are described in the v0.1.1 release notes.
+
+## Independent verification
+
+The `verification/` directory holds self-contained evidence bundles for serving
+configurations exercised outside CI. Currently:
+
+- [`verification/sglang-38191-122b-mtp3-pd-soak/`](verification/sglang-38191-122b-mtp3-pd-soak/) —
+  a 1-hour prefill/decode-disaggregation soak of **Qwen3.5-122B with the built-in MTP3
+  head** on sglang (8×A800 decode node, Mooncake RDMA transfer), with launch scripts,
+  router/prefill/decode log excerpts, and a per-minute error-count summary. Tracked
+  upstream as [sglang#38191](https://github.com/sgl-project/sglang/issues/38191).
+
+These bundles evidence deployment behavior of the target stacks; they are not
+training-pipeline benchmarks.
 
 ## Presets
 
