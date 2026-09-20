@@ -159,7 +159,7 @@ export SPECDRAFT_SPECULATORS_REPO=.    # path must exist; engine is not imported
 pytest -q
 ```
 
-85 unit tests cover presets / config / invoke: per-preset argv smoke for all 6 presets ×
+86 unit tests cover presets / config / invoke: per-preset argv smoke for all 6 presets ×
 3 draft types across both config paths (--preset table vs presets/*.yaml, cross-checked),
 full-pipeline dry-run verification, and config-resolution error paths (readable errors,
 no bare tracebacks).
