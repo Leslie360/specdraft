@@ -64,5 +64,5 @@ for c, mins in [(4, 20), (16, 20), (32, 20)]:
     phase(c, mins)
 print("=== SOAK DONE ===", flush=True)
 summary = {"ok": RESULTS["ok"], "fail": RESULTS["fail"], "errors_sample": RESULTS["errors"][:5]}
-json.dump(summary, open("/root/soak_summary.json", "w"))
+json.dump(summary, open("<HOME>/soak_summary.json", "w"))
 print("SUMMARY:", json.dumps(summary), flush=True)

@@ -1,7 +1,7 @@
 # Release Notes — specdraft v0.1.4
 
 **v0.1.4 is a consolidated release.** Everything that accumulated after v0.1.3 —
-two unmerged fix branches, the ⑥ specdraft patch from the training audit, and a
+two unmerged fix branches, the training-audit patch, and a
 repository-wide sweep for loose ends — ships as **one version**. If you are
 upgrading from any v0.1.x, this is the only release in between that matters.
 
@@ -9,7 +9,7 @@ Contents merged here:
 
 - `docs/housekeeping-0920` — dangling-reference fixes, README status, verification-bundle link
 - `fix/convert-sample-from-anchor` — convert layout self-description + null-default bug
-- ⑥ patch (specdraft audit, 2026-09-21) — convert `sample_from_anchor` fix (fully
+- training-audit patch (2026-09-20) — convert `sample_from_anchor` fix (fully
   subsumed by the branch above; zero delta) + the qwen38-flash-next preset
   corrections (applied here)
 - Full-repo audit — version-string alignment, link check, test-count drift
@@ -56,8 +56,7 @@ Contents merged here:
 
 - **Aux-alignment retraining conclusion is pending** — the marathon run is still
   in progress; no acceptance verdict on the retrained alignment yet.
-- **qwen4 checkpoint awaits the OCR training line update** — the qwen4-side
-  checkpoint refresh is gated on that line, so qwen38-flash-next remains
+- **qwen4 checkpoint refresh is gated on an upstream data update**, so qwen38-flash-next remains
   *experimental / untested in CI* even with corrected preset values.
 - The specdraft pipeline does not emit `--optimizer muon`, `--noise-std 0.05`,
   or `--muon-ns-steps 3` by default (the real dflash2 run passed them

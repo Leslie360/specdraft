@@ -13,4 +13,4 @@
 - `prefill_excerpt.log` / `decode_excerpt.log` / `router_excerpt.log` — head/tail excerpts: startup `server_args`, RDMA topology discovery, accept-length samples, shutdown state
 - `prefill_errcount.txt` / `decode_errcount.txt` — `grep -c "AssertionError|Traceback|OOM|KVTransferError"` on each full log (0 / 0)
 
-Internal IPs and storage paths are redacted (`10.x.x.x`, `<pfs>/...`); all content is otherwise verbatim. Full raw logs (~55 MB) are retained and available on request.
+Internal IPs, storage paths, home-directory paths, and node-identifying RDMA addresses are redacted (`10.x.x.x`, `<pfs>/...`, `<HOME>/...`, `<redacted>`); all content is otherwise verbatim. Only these redacted excerpts are distributed.

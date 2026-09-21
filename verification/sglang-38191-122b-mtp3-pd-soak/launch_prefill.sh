@@ -1,9 +1,9 @@
 #!/bin/bash
-source /root/venv-main/bin/activate
-export LD_LIBRARY_PATH=/root/cudart12lib:/usr/local/cuda-13.0/compat
+source <HOME>/venv-main/bin/activate
+export LD_LIBRARY_PATH=<HOME>/cudart12lib:/usr/local/cuda-13.0/compat
 export CUDA_HOME=/usr/local/cuda-13.0
 export PATH=/usr/local/cuda-13.0/bin:$PATH
-export PYTHONPATH=/root/sglang-newmain/python
+export PYTHONPATH=<HOME>/sglang-newmain/python
 export SGLANG_SKIP_SGL_KERNEL_VERSION_CHECK=true
 exec python -m sglang.launch_server \
   --model-path <pfs>/models/Qwen3.5-122B-A10B \
