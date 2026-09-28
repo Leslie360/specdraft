@@ -1,0 +1,41 @@
+sglang PR #41040 synthetic byte-exact transfer validation
+=========================================================
+date:        2026-09-27
+repo:        sgl-project/sglang (https://github.com/sgl-project/sglang)
+base (main): acc15c193b9d8813cb31b66cd19980fe0de9d72d   (shallow clone of main)
+PR head:     8c43def6d4f4406779bcc3d128f156e7555aebbc   (fetch origin pull/41040/head, branch pr41040)
+             commit message: "fix(disagg): transfer DFlash draft KV across asymmetric TP"
+             author: number-eleven11
+PR diff:     python/sglang/srt/disaggregation/mooncake/conn.py (+215)
+             python/sglang/srt/disaggregation/prefill.py    (+7)
+
+target machine: <8x A800-80GB node> (8x A800-80GB, all idle)
+python:   3.12.3
+torch:    2.11.0+cu130  (cuda available, 8 devices)
+triton:   3.6.0
+sglang:   0.5.17 editable install present (UNTOUCHED - all runs use a
+          dedicated venv --system-site-packages
+          plus PYTHONPATH to <tree>/python; runs resolve the
+          full sglang package from the cloned tree, never from the install)
+
+import stubs / fakes (nothing patched at import time; no sys.modules fakes):
+  * conn.get_memory            -> monkeypatched AFTER import to return
+                                  SimpleNamespace(enable_unified_memory=False)
+                                  (makes _validate_envelope_kv_layout early-return;
+                                  the asymmetric-TP path under test is the
+                                  non-unified-memory path, same as real GLM setup)
+  * MooncakeKVManager instance -> object.__new__, fields set by hand; __init__
+                                  (engine init, RDMA registration, worker threads,
+                                  ZMQ) never runs
+  * instance _transfer_data    -> recorder that captures every (src,dst,len)
+                                  block and replays it into a numpy bytearray
+                                  memory model (byte-exact); src bytes resolved
+                                  AT RECORD TIME so the reused per-thread staging
+                                  pack buffer cannot contaminate later chunks
+  * engine                     -> FakeEngine (records batch_register calls;
+                                  batch_transfer_sync never invoked because
+                                  _transfer_data is replaced)
+  * kv_args / server_args      -> SimpleNamespace with exactly the fields the
+                                  tested code paths read
+  * NO source file of sglang was modified; tested functions are the real PR
+    function bodies imported from the tree.

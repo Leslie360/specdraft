@@ -1,0 +1,281 @@
+{
+  "scenario": "F",
+  "tree": "<run-dir>/pr41040",
+  "python": "<run-dir>/venv/bin/python",
+  "torch": "2.11.0+cu130",
+  "conn_file": "<run-dir>/pr41040/python/sglang/srt/disaggregation/mooncake/conn.py",
+  "pass_count": 45,
+  "fail_count": 0,
+  "checks": [
+    {
+      "scenario": "F rank0->d0",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "per-block src/dst address math exact",
+      "ok": true,
+      "detail": "draft_blocks=2560 bad=0"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "fallback block count (per-token blocks)",
+      "ok": true,
+      "detail": "got=2560 want=2560"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "transfer_data call count (target + 8-page chunks)",
+      "ok": true,
+      "detail": "calls=3 want=3"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "draft dst pages byte-exact (all mapped pages)",
+      "ok": true,
+      "detail": "bad=0/40"
+    },
+    {
+      "scenario": "F rank0->d0",
+      "name": "unmapped dst pages untouched (sentinel)",
+      "ok": true,
+      "detail": "dirty=0"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "per-block src/dst address math exact",
+      "ok": true,
+      "detail": "draft_blocks=2560 bad=0"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "fallback block count (per-token blocks)",
+      "ok": true,
+      "detail": "got=2560 want=2560"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "transfer_data call count (target + 8-page chunks)",
+      "ok": true,
+      "detail": "calls=3 want=3"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "draft dst pages byte-exact (all mapped pages)",
+      "ok": true,
+      "detail": "bad=0/40"
+    },
+    {
+      "scenario": "F rank0->d3",
+      "name": "unmapped dst pages untouched (sentinel)",
+      "ok": true,
+      "detail": "dirty=0"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "per-block src/dst address math exact",
+      "ok": true,
+      "detail": "draft_blocks=2560 bad=0"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "fallback block count (per-token blocks)",
+      "ok": true,
+      "detail": "got=2560 want=2560"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "transfer_data call count (target + 8-page chunks)",
+      "ok": true,
+      "detail": "calls=3 want=3"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "draft dst pages byte-exact (all mapped pages)",
+      "ok": true,
+      "detail": "bad=0/40"
+    },
+    {
+      "scenario": "F rank1->d4",
+      "name": "unmapped dst pages untouched (sentinel)",
+      "ok": true,
+      "detail": "dirty=0"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "per-block src/dst address math exact",
+      "ok": true,
+      "detail": "draft_blocks=2560 bad=0"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "fallback block count (per-token blocks)",
+      "ok": true,
+      "detail": "got=2560 want=2560"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "transfer_data call count (target + 8-page chunks)",
+      "ok": true,
+      "detail": "calls=3 want=3"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "draft dst pages byte-exact (all mapped pages)",
+      "ok": true,
+      "detail": "bad=0/40"
+    },
+    {
+      "scenario": "F rank1->d7",
+      "name": "unmapped dst pages untouched (sentinel)",
+      "ok": true,
+      "detail": "dirty=0"
+    },
+    {
+      "scenario": "Fneg-owner rank0->d4",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "Fneg-owner rank0->d4",
+      "name": "non-owned pair sends zero draft blocks",
+      "ok": true,
+      "detail": "draft_blocks=0"
+    },
+    {
+      "scenario": "Fneg-owner rank1->d0",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "Fneg-owner rank1->d0",
+      "name": "non-owned pair sends zero draft blocks",
+      "ok": true,
+      "detail": "draft_blocks=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "send_kvcache returns 0",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "per-block src/dst address math exact",
+      "ok": true,
+      "detail": "draft_blocks=40 bad=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "draft dst pages byte-exact (all mapped pages)",
+      "ok": true,
+      "detail": "bad=0/40"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "unmapped dst pages untouched (sentinel)",
+      "ok": true,
+      "detail": "dirty=0"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "staging pack buffer allocated & registered",
+      "ok": true,
+      "detail": "pack_buffers=1 engine_regs=1"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "all draft blocks sourced from staging buffer",
+      "ok": true,
+      "detail": "pack_reads=40 draft_blocks=40"
+    },
+    {
+      "scenario": "F-staging rank0->d3",
+      "name": "staging gathered bytes == expected head slices",
+      "ok": true,
+      "detail": "bad=0/40"
+    }
+  ]
+}

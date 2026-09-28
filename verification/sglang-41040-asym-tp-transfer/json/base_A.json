@@ -1,0 +1,35 @@
+{
+  "scenario": "A",
+  "tree": "<run-dir>/base",
+  "python": "<run-dir>/venv/bin/python",
+  "torch": "2.11.0+cu130",
+  "conn_file": "<run-dir>/base/python/sglang/srt/disaggregation/mooncake/conn.py",
+  "pass_count": 4,
+  "fail_count": 0,
+  "checks": [
+    {
+      "scenario": "A",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "A",
+      "name": "draft dst pages byte-exact",
+      "ok": true,
+      "detail": "correct=7266/2097152 ratio=0.0035"
+    },
+    {
+      "scenario": "A",
+      "name": "tail-chunk writes overrun dst buffer (fails at the tail)",
+      "ok": true,
+      "detail": "oob=524288 expected=524288"
+    },
+    {
+      "scenario": "A",
+      "name": "every in-region draft byte wrong or clobbered",
+      "ok": true,
+      "detail": "corrupted=2089886/2097152"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "scenario": "E",
+  "tree": "<run-dir>/pr41040",
+  "python": "<run-dir>/venv/bin/python",
+  "torch": "2.11.0+cu130",
+  "conn_file": "<run-dir>/pr41040/python/sglang/srt/disaggregation/mooncake/conn.py",
+  "pass_count": 4,
+  "fail_count": 0,
+  "checks": [
+    {
+      "scenario": "E",
+      "name": "no raise on equal TP",
+      "ok": true,
+      "detail": "ret=0"
+    },
+    {
+      "scenario": "E",
+      "name": "no out-of-region writes",
+      "ok": true,
+      "detail": "oob=0"
+    },
+    {
+      "scenario": "E",
+      "name": "target KV byte-exact",
+      "ok": true,
+      "detail": "pages_ok=20 pages_bad=0"
+    },
+    {
+      "scenario": "E",
+      "name": "draft byte-exact equal-TP",
+      "ok": true,
+      "detail": "bad=0"
+    }
+  ]
+}
